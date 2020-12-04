@@ -44,13 +44,56 @@ namespace refactor_this.Models
             }
         }
 
-        public void Delete()
+        public void Delete(Guid id)
         {
             using (var connection = Helpers.NewConnection())
             {
-                SqlCommand command = new SqlCommand($"delete from Accounts where Id = '{Id}'", connection);
+                SqlCommand command = new SqlCommand($"delete from Accounts where Id = '{id}'", connection);
                 connection.Open();
                 command.ExecuteNonQuery();
+            }
+        }
+
+        public Account Get(Guid id)
+        {
+            using (var connection = Helpers.NewConnection())
+            {
+                SqlCommand command = new SqlCommand($"select * from Accounts where Id = '{id}'", connection);
+                connection.Open();
+                var reader = command.ExecuteReader();
+                if (!reader.Read())
+                    throw new ArgumentException();
+
+                var account = new Account(id);
+                account.Name = reader["Name"].ToString();
+                account.Number = reader["Number"].ToString();
+                account.Amount = float.Parse(reader["Amount"].ToString());
+                return account;
+            }
+        }
+
+        public List<Account> GetAccounts()
+        {
+            using (var connection = Helpers.NewConnection())
+            {
+                SqlCommand command = new SqlCommand($"select * from Accounts", connection);
+                connection.Open();
+                var reader = command.ExecuteReader();
+                var accounts = new List<Account>();
+                while (reader.Read())
+                {
+
+                    var account = new Account();
+                    account.Id = new Guid(reader["Id"].ToString());
+                    account.Name = reader["Name"].ToString();
+                    account.Number = reader["Number"].ToString();
+                    account.Amount = float.Parse(reader["Amount"].ToString());
+                    //var id = Guid.Parse(reader["Id"].ToString());
+                    //var account = Get(id);
+                    accounts.Add(account);
+                }
+
+                return accounts;
             }
         }
     }
